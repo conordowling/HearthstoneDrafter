@@ -11,6 +11,7 @@ Vagrant.configure("2") do |config|
         web.vm.hostname = "web"
         web.vm.box = "ubuntu/trusty64"
         web.vm.network :forwarded_port, guest: 8080, host: 8080
+        web.vm.network :forwarded_port, guest: 5000, host: 5000
         web.vm.provision :shell, :path => "vm_provisioning/web.sh"
     end
 end
