@@ -1,4 +1,10 @@
-from flask import Flask, session, redirect, url_for, escape, request
+from flask import Flask, session, redirect, url_for, escape, request, render_template
+
+# Forms stuff
+from flask.ext.wtf import form 
+from wtforms import StringField, BooleanField
+from wtforms.validators import DataRequired
+import custom_forms
 
 # needs redis to run
 from juggernaut import Juggernaut
@@ -7,22 +13,28 @@ app = Flask(__name__)
 
 app.secret_key = 'yolo'
 
+@app.route('/home')
 @app.route('/')
-def hello_world():
-	return 'Hello World'
-
+def home():
+	return render_template('test.html')
 
 
 
 #Server Functionality
-@app.route('/login/<username>', methods=['GET', 'POST'])
-def login(username):
-	if not users.get(username, None):
-		session['username'] = username
-		users[username] = User(username)
-		return 'success'
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+	form = LoginForm()
+	if form.validate_on_submit():
+		username = form.username.data
+		flash('Login requested with username %s' % username)
+		if not users.get(username, None):
+			session['username'] = username
+			users[username] = User(username)
+			return 'success'
+		else:
+			return 'username taken'
 	else:
-		return 'username taken'
+		return 'Please enter a username'
 
 @app.route('/logout')
 def logout():
@@ -58,23 +70,36 @@ def join_lobby(name, password):
 def get_lobbies():
 	return lobbies
 
-@app.route('/start/<lobby>')
+@app.route('/start')
 def start_draft():
-	pass
+	lobby = lobbies[session['lobby']]
+	if session['username'] == lobby.owner:
+		lobby.start_draft()
+
+	else:
+		return 'you are not the owner of this lobby'
 
 @app.route('/pick/<lobby>/<username>/<card>', methods=['POST'])
 def pick_card():
 	pass
 
-def send_chat(sender, lobby_name, message):
-	lobby = lobbies.get(lobby_name, None)
-	if not lobby:
-		print 'no such lobby'
-		return
+@app.route('/chat')
+def send_chat():
+	form = ChatForm()
+	if form.validate_on_submit():
+		message = form.message.data
 
-	for username in lobby.players:
-		user = users[username]
-		user.message(sender + ": " + message)
+		lobby = lobbies.get(session['lobby'], None)
+		if not lobby:
+			print 'no such lobby'
+			return
+
+		for name in lobby.players:
+			user = users[name]
+			user.message(session['username'], message)
+
+	else:
+		return 'no text'
 
 
 # lobby names -> lobby objects
@@ -108,7 +133,7 @@ class Lobby:
 	def message(self, sender, text):
 		self.messages.append(text)
 		for user in self.players:
-			user.message(sender ": " + text)
+			user.message(sender + ": " + text)
 
 	def start_draft(self):
 		self.draft = Draft(players)
