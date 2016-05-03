@@ -19,6 +19,8 @@ def get_cards_from_api():
 	for s, cards in response.body.items():
 		for card in cards:
 			if card["type"] in ["Minion", "Spell", "Weapon"]:
+				if not card.get("playerClass", None):
+					card["playerClass"] = "Neutral"
 				card_collection.insert(card)
 
 

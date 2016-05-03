@@ -1,15 +1,16 @@
 from flask.ext.wtf import Form
 from wtforms import StringField, BooleanField
+from wtforms import validators
 from wtforms.validators import DataRequired
 
 class LoginForm(Form):
-	username = StringField('username', validators=[DataRequired])
+	username = StringField('username')
 
 class ChatForm(Form):
-    message = StringField('message', validators=[DataRequired()])
+    message = StringField('message')
 
 class LobbyForm(Form):
-	name = StringField('name', validators=[DataRequired()])
+	name = StringField('name')
 	password = StringField('password')
 
 class DraftSettingsForm(Form):

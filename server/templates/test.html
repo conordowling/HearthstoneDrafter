@@ -1,16 +1,17 @@
-<!--{% extends "layout.html" %}
+{% extends "layout.html" %}
 {% block body %}
   <h2>Login</h2>
-  <form action="{{ url_for('login') }}" method=post>
+  
+  {% from "_formhelpers.html" import render_field %}
+  <form method=post action="/login">
     <dl>
-      <dt>Username:
-      <dd><input type=text name=username>
-      <dd><input type=submit value=Login>
+      {{ render_field(login_form.username) }}
     </dl>
+    <p><input type=submit value=Login>
   </form>
 
   <h2>Create Lobby</h2>
-  <form action="{{ url_for('create') }}" method=post>
+  <form action="/create" method=post>
     <dl>
       <dt>Lobby Name:
       <dd><input type=text name=name>
@@ -21,7 +22,7 @@
   </form>
 
   <h2>Join Lobby</h2>
-  <form action="{{ url_for('join') }}" method=post>
+  <form action="/join" method=post>
     <dl>
       <dt>Lobby Name:
       <dd><input type=text name=name>
@@ -31,6 +32,4 @@
     </dl>
   </form>
 
-{% endblock %} -->
-
-testing
+{% endblock %}
