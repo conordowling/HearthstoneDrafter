@@ -18,6 +18,9 @@ from flask.ext.security import Security
 from flask_mongoengine import MongoEngine, MongoEngineSessionInterface
 from flask_debugtoolbar import DebugToolbarExtension
 
+# random stuff
+import time
+
 from config import *
 
 app = Flask(__name__)
@@ -204,8 +207,12 @@ class Lobby:
 		draft_save = {}
 		draft_save['name'] = self.name
 
-		#for player in self.draft.players:
+		draft_save['pools'] = {}
+		for player in self.draft.players:
+			draft_save['pools'][player.name] = player.card_pool
+			# TO DO: save the draft in each players' draft history.
 
+		draft_save['time'] = time.time()
 
 # username -> user objects
 users = {}
