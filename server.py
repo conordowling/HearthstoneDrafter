@@ -6,23 +6,19 @@ from wtforms import StringField, BooleanField
 from wtforms.validators import DataRequired
 from custom_forms import *
 
-# needs redis to run
-from juggernaut import Juggernaut
+from flask_sse import sse
 from push_notifications import *
 
-# social stuff
-from flask.ext.social import Social
-from flask.ext.security import Security
-
-#db stuff
-from flask_mongoengine import MongoEngine, MongoEngineSessionInterface
-from flask_debugtoolbar import DebugToolbarExtension
+# pymongo
+import pymongo
+from pymongo import MongoClient
 
 # random stuff
 import time
+import json
 
 from config import *
-from models import *
+#from models import *
 
 app = Flask(__name__)
 
@@ -33,25 +29,14 @@ app.config['SOCIAL_FACEBOOK'] = {
     'consumer_secret': FB_APP_SECRET
 }
 
+app.config["REDIS_URL"] = "redis://localhost"
+app.register_blueprint(sse, url_prefix='/stream')
 
-#app.config['MONGODB_SETTINGS'] = {
-#    'db': 'hearthstone',
-#    'username':'webapp',
-#    'password':'pwd123'
-#}
-
-app.config['DEBUG_TB_PANELS'] = ['flask_mongoengine.panels.MongoDebugPanel']
-
-
-db = MongoEngine(app)
-
-# ... define user and role models ...
-
-
-
-
-Security(app, MongoEngineSessionInterface(db))
-Social(app, db)
+# DB setup
+db = MongoClient("localhost").hearthstone
+users_db = db.users
+draft_db = db.drafts
+lobbies_db = db.lobbies
 
 @app.route('/home')
 @app.route('/')
@@ -120,7 +105,7 @@ def join_lobby():
 
 @app.route('/lobbies')
 def get_lobbies():
-	return filter(lambda x: x[draft] == None, lobbies)
+	return json.dumps(filter(lambda x: x[draft] == None, lobbies))
 
 @app.route('/start')
 def start_draft():
@@ -217,10 +202,9 @@ class User:
 
 
 	def message(self, message):
-		jug.publish(self.channel, message)
+		sse.publish(message, type=self.channel)
 
 if __name__ == "__main__":
 	app.run(debug=True)
 	
 	lobbies = []
-	jug = Juggernaut()
