@@ -1,0 +1,8 @@
+flask
+flask-wtf
+flask-social
+flask-mongoengine
+flask-debugtoolbar
+
+juggernaut
+http://github.com/pythonforfacebook/facebook-sdk/tarball/master
