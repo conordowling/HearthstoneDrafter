@@ -41,6 +41,10 @@ lobbies_db = db.lobbies
 @app.route('/home')
 @app.route('/')
 def home():
+	return render_template('index.html', login_form=LoginForm())
+
+@app.route('/test')
+def test():
 	return render_template('test.html', login_form=LoginForm())
 
 
