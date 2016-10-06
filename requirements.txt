@@ -4,5 +4,6 @@ flask-social
 flask-mongoengine
 flask-debugtoolbar
 
-juggernaut
+pymongo
+
 http://github.com/pythonforfacebook/facebook-sdk/tarball/master
