@@ -18,7 +18,6 @@ import time
 import json
 
 from config import *
-#from models import *
 
 app = Flask(__name__)
 
@@ -36,7 +35,7 @@ app.register_blueprint(sse, url_prefix='/stream')
 db = MongoClient("localhost").hearthstone
 users_db = db.users
 draft_db = db.drafts
-lobbies_db = db.lobbies
+
 
 @app.route('/home')
 @app.route('/')
@@ -82,7 +81,7 @@ def create_lobby():
 		return 'fill in the fields please'
 	if not session.get('username', None):
 		return 'you are not logged in'
-	if not lobbies.get(form.name.data, None):
+	if not lobbies.get(form.name.data):
 		lobbies[form.name.data] = Lobby(form.name.data, form.password.data, session['username'])
 		session["lobby"] = form.name.data
 		session["owner"] = True
@@ -108,8 +107,11 @@ def join_lobby():
 		return 'incorrect password'
 
 @app.route('/lobbies')
+def lobby_view():
+	return render_template("lobbies.html", lobbies = get_lobbies())
+
 def get_lobbies():
-	return json.dumps(filter(lambda x: x[draft] == None, lobbies))
+	return filter(lambda x: x.draft == None, lobbies.values())
 
 @app.route('/start')
 def start_draft():
@@ -119,8 +121,13 @@ def start_draft():
 	else:
 		return 'you are not the owner of this lobby'
 
-@app.route('/pick/<lobby>/<username>/<card>', methods=['POST'])
+@app.route('/pick', methods=['POST'])
 def pick_card(lobby, username, card):
+	data = request.json
+	if lobbies.get(data["lobby"], None):
+		if username in lobbies[data["lobby"]]:
+			# check if valid card and draft if it is
+			pass
 	pass
 
 @app.route('/pack')
@@ -145,8 +152,8 @@ def send_chat():
 		return 'no text'
 
 
-# lobby names -> lobby objects
-lobbies = {}
+
+
 
 class Lobby:
 
@@ -195,8 +202,9 @@ class Lobby:
 
 		draft_save['time'] = time.time()
 
-# username -> user objects
-users = {}
+def fake_lobbies(num):
+	return { "lobby"+str(i) : Lobby( "lobby" + str(i), "password", "owner" + str(i)) for i in range(1, num+1) }
+
 
 class User:
 
@@ -204,11 +212,18 @@ class User:
 		self.name = name
 		self.channel = name
 
-
 	def message(self, message):
 		sse.publish(message, type=self.channel)
+
+# lobby name -> Lobby object
+#lobbies = {}
+lobbies = fake_lobbies(10)
+
+# username => User object
+users = {}
+
 
 if __name__ == "__main__":
 	app.run(debug=True,host='0.0.0.0')
 	
-	lobbies = []
+	
